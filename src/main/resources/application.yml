@@ -18,3 +18,13 @@ management:
     web:
       exposure:
         include: health,info
+
+logging:
+  file:
+    path: logs
+
+  level:
+    root: INFO
+    com.rahulagarwal.promptforge: DEBUG
+    org.springframework: INFO
+    org.hibernate: WARN
