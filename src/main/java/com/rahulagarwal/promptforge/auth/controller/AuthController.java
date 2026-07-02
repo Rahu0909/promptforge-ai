@@ -53,4 +53,10 @@ public class AuthController {
         authService.logoutAll(request);
         return ResponseEntity.ok(ApiResponse.success(null, "Logged out from all devices."));
     }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Password changed successfully."));
+    }
 }

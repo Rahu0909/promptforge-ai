@@ -9,16 +9,21 @@ import com.rahulagarwal.promptforge.auth.enums.AccountStatus;
 import com.rahulagarwal.promptforge.auth.enums.AuthProvider;
 import com.rahulagarwal.promptforge.auth.mapper.AuthMapper;
 import com.rahulagarwal.promptforge.auth.repository.AuthUserRepository;
+import com.rahulagarwal.promptforge.auth.repository.RefreshTokenRepository;
 import com.rahulagarwal.promptforge.auth.service.AuthService;
 import com.rahulagarwal.promptforge.auth.service.RefreshTokenService;
 import com.rahulagarwal.promptforge.common.enums.ErrorCode;
 import com.rahulagarwal.promptforge.common.exception.BadRequestException;
+import com.rahulagarwal.promptforge.common.exception.ResourceNotFoundException;
 import com.rahulagarwal.promptforge.security.jwt.JwtProperties;
 import com.rahulagarwal.promptforge.security.jwt.JwtService;
+import com.rahulagarwal.promptforge.security.model.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
     private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public RegisterResponse register(RegisterRequest request) {
@@ -89,5 +95,22 @@ public class AuthServiceImpl implements AuthService {
     public void logoutAll(LogoutAllRequest request) {
         AuthUser user = authUserRepository.findByEmail(request.email()).orElseThrow();
         refreshTokenService.revokeAll(user);
+    }
+
+    @Override
+    public void changePassword(ChangePasswordRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails currentUser = (CustomUserDetails) authentication.getPrincipal();
+        AuthUser user = authUserRepository.findById(currentUser.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found.", ErrorCode.USER_NOT_FOUND));
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+            throw new BadRequestException("Current password is incorrect.", ErrorCode.INVALID_CREDENTIALS);
+        }
+        if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
+            throw new BadRequestException("New password cannot be same as current password.", ErrorCode.BAD_REQUEST);
+        }
+        user.updatePassword(passwordEncoder.encode(request.newPassword()));
+        authUserRepository.save(user);
+        refreshTokenService.revokeAll(user);
+        log.info("Password changed successfully for user={}", user.getEmail());
     }
 }
