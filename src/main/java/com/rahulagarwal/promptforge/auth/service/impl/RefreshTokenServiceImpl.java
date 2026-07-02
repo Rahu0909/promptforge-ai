@@ -6,6 +6,8 @@ import com.rahulagarwal.promptforge.auth.repository.RefreshTokenRepository;
 import com.rahulagarwal.promptforge.auth.service.RefreshTokenService;
 import com.rahulagarwal.promptforge.common.enums.ErrorCode;
 import com.rahulagarwal.promptforge.common.exception.BadRequestException;
+import com.rahulagarwal.promptforge.security.jwt.JwtProperties;
+import com.rahulagarwal.promptforge.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,13 +19,15 @@ import java.time.OffsetDateTime;
 @Transactional
 public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final RefreshTokenRepository repository;
+    private final JwtProperties jwtProperties;
+    private final JwtService jwtService;
 
     @Override
     public RefreshToken create(AuthUser user, String token) {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setAuthUser(user);
         refreshToken.setToken(token);
-        refreshToken.setExpiresAt(OffsetDateTime.now().plusDays(7));
+        refreshToken.setExpiresAt(jwtService.refreshTokenExpiry());
         return repository.save(refreshToken);
     }
 

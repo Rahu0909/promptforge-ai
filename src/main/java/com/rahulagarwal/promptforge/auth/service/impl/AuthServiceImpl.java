@@ -1,10 +1,10 @@
 package com.rahulagarwal.promptforge.auth.service.impl;
 
-import com.rahulagarwal.promptforge.auth.dto.request.LoginRequest;
-import com.rahulagarwal.promptforge.auth.dto.request.RegisterRequest;
+import com.rahulagarwal.promptforge.auth.dto.request.*;
 import com.rahulagarwal.promptforge.auth.dto.response.LoginResponse;
 import com.rahulagarwal.promptforge.auth.dto.response.RegisterResponse;
 import com.rahulagarwal.promptforge.auth.entity.AuthUser;
+import com.rahulagarwal.promptforge.auth.entity.RefreshToken;
 import com.rahulagarwal.promptforge.auth.enums.AccountStatus;
 import com.rahulagarwal.promptforge.auth.enums.AuthProvider;
 import com.rahulagarwal.promptforge.auth.mapper.AuthMapper;
@@ -66,13 +66,28 @@ public class AuthServiceImpl implements AuthService {
         String access = jwtService.generateAccessToken(user);
         String refresh = jwtService.generateRefreshToken(user);
         refreshTokenService.create(user, refresh);
-        return new LoginResponse(
-                access,
-                refresh,
-                "Bearer",
-                jwtProperties.accessTokenExpiration(),
-                user.getRole().name(),
-                user.getEmail()
-        );
+        return new LoginResponse(access, refresh, "Bearer", jwtProperties.accessTokenExpiration(), user.getRole().name(), user.getEmail());
+    }
+
+    @Override
+    public LoginResponse refresh(RefreshTokenRequest request) {
+        RefreshToken refreshToken = refreshTokenService.verify(request.refreshToken());
+        AuthUser user = refreshToken.getAuthUser();
+        refreshTokenService.revoke(request.refreshToken());
+        String newAccessToken = jwtService.generateAccessToken(user);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
+        refreshTokenService.create(user, newRefreshToken);
+        return new LoginResponse(newAccessToken, newRefreshToken, "Bearer", jwtProperties.accessTokenExpiration(), user.getRole().name(), user.getEmail());
+    }
+
+    @Override
+    public void logout(LogoutRequest request) {
+        refreshTokenService.revoke(request.refreshToken());
+    }
+
+    @Override
+    public void logoutAll(LogoutAllRequest request) {
+        AuthUser user = authUserRepository.findByEmail(request.email()).orElseThrow();
+        refreshTokenService.revokeAll(user);
     }
 }

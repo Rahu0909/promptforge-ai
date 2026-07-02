@@ -1,8 +1,6 @@
 package com.rahulagarwal.promptforge.auth.controller;
 
-import com.rahulagarwal.promptforge.auth.dto.request.LoginRequest;
-import com.rahulagarwal.promptforge.auth.dto.request.RefreshTokenRequest;
-import com.rahulagarwal.promptforge.auth.dto.request.RegisterRequest;
+import com.rahulagarwal.promptforge.auth.dto.request.*;
 import com.rahulagarwal.promptforge.auth.dto.response.LoginResponse;
 import com.rahulagarwal.promptforge.auth.dto.response.RegisterResponse;
 import com.rahulagarwal.promptforge.auth.service.AuthService;
@@ -44,4 +42,15 @@ public class AuthController {
 
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody LogoutRequest request) {
+        authService.logout(request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Logout successful."));
+    }
+
+    @PostMapping("/logout-all")
+    public ResponseEntity<ApiResponse<Void>> logoutAll(@Valid @RequestBody LogoutAllRequest request) {
+        authService.logoutAll(request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Logged out from all devices."));
+    }
 }
