@@ -4,6 +4,7 @@ import com.rahulagarwal.promptforge.auth.dto.request.*;
 import com.rahulagarwal.promptforge.auth.dto.response.LoginResponse;
 import com.rahulagarwal.promptforge.auth.dto.response.RegisterResponse;
 import com.rahulagarwal.promptforge.auth.entity.AuthUser;
+import com.rahulagarwal.promptforge.auth.entity.PasswordResetToken;
 import com.rahulagarwal.promptforge.auth.entity.RefreshToken;
 import com.rahulagarwal.promptforge.auth.enums.AccountStatus;
 import com.rahulagarwal.promptforge.auth.enums.AuthProvider;
@@ -11,6 +12,7 @@ import com.rahulagarwal.promptforge.auth.mapper.AuthMapper;
 import com.rahulagarwal.promptforge.auth.repository.AuthUserRepository;
 import com.rahulagarwal.promptforge.auth.repository.RefreshTokenRepository;
 import com.rahulagarwal.promptforge.auth.service.AuthService;
+import com.rahulagarwal.promptforge.auth.service.PasswordResetTokenService;
 import com.rahulagarwal.promptforge.auth.service.RefreshTokenService;
 import com.rahulagarwal.promptforge.common.enums.ErrorCode;
 import com.rahulagarwal.promptforge.common.exception.BadRequestException;
@@ -42,6 +44,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtProperties jwtProperties;
     private final RefreshTokenService refreshTokenService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordResetTokenService passwordResetTokenService;
 
     @Override
     public RegisterResponse register(RegisterRequest request) {
@@ -112,5 +115,30 @@ public class AuthServiceImpl implements AuthService {
         authUserRepository.save(user);
         refreshTokenService.revokeAll(user);
         log.info("Password changed successfully for user={}", user.getEmail());
+    }
+
+    @Override
+    public void forgotPassword(ForgotPasswordRequest request) {
+        AuthUser user = authUserRepository.findByEmail(request.email()).orElseThrow(() -> new ResourceNotFoundException("User not found.", ErrorCode.USER_NOT_FOUND));
+        PasswordResetToken token = passwordResetTokenService.create(user);
+        log.info("Password reset token generated for {}", user.getEmail());
+        log.debug("Password reset token : {}", token.getToken());
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+        PasswordResetToken resetToken = passwordResetTokenService.verify(request.token());
+        AuthUser user = resetToken.getAuthUser();
+        if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
+            throw new BadRequestException(
+                    "New password cannot be the same as the current password.",
+                    ErrorCode.BAD_REQUEST
+            );
+        }
+        user.updatePassword(passwordEncoder.encode(request.newPassword()));
+        authUserRepository.save(user);
+        passwordResetTokenService.markAsUsed(resetToken);
+        refreshTokenService.revokeAll(user);
+        log.info("Password reset successfully for {}", user.getEmail());
     }
 }

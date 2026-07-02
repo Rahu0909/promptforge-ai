@@ -17,4 +17,8 @@ public interface AuthService {
     void logoutAll(LogoutAllRequest request);
 
     void changePassword(ChangePasswordRequest request);
+
+    void forgotPassword(ForgotPasswordRequest request);
+
+    void resetPassword(ResetPasswordRequest request);
 }

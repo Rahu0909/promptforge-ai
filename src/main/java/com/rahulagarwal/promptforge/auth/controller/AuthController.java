@@ -59,4 +59,16 @@ public class AuthController {
         authService.changePassword(request);
         return ResponseEntity.ok(ApiResponse.success(null, "Password changed successfully."));
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Password reset link generated."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Password reset successful."));
+    }
 }
