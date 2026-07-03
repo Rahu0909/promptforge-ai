@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +54,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public void revokeAll(AuthUser user) {
-        repository.findAllByAuthUserId(user.getId()).forEach(token -> token.setRevoked(true));
+        List<RefreshToken> tokens = repository.findAllByAuthUserId(user.getId());
+        tokens.forEach(token -> token.setRevoked(true));
+        repository.saveAll(tokens);
     }
 }

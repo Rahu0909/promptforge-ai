@@ -63,4 +63,13 @@ public class AuthUser extends BaseEntity {
         this.password = encodedPassword;
     }
 
+
+    public void verifyEmail() {
+        this.emailVerified = true;
+        this.accountStatus = AccountStatus.ACTIVE;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
 }

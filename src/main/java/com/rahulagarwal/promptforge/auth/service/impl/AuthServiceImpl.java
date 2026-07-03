@@ -4,14 +4,15 @@ import com.rahulagarwal.promptforge.auth.dto.request.*;
 import com.rahulagarwal.promptforge.auth.dto.response.LoginResponse;
 import com.rahulagarwal.promptforge.auth.dto.response.RegisterResponse;
 import com.rahulagarwal.promptforge.auth.entity.AuthUser;
+import com.rahulagarwal.promptforge.auth.entity.EmailVerificationToken;
 import com.rahulagarwal.promptforge.auth.entity.PasswordResetToken;
 import com.rahulagarwal.promptforge.auth.entity.RefreshToken;
 import com.rahulagarwal.promptforge.auth.enums.AccountStatus;
 import com.rahulagarwal.promptforge.auth.enums.AuthProvider;
 import com.rahulagarwal.promptforge.auth.mapper.AuthMapper;
 import com.rahulagarwal.promptforge.auth.repository.AuthUserRepository;
-import com.rahulagarwal.promptforge.auth.repository.RefreshTokenRepository;
 import com.rahulagarwal.promptforge.auth.service.AuthService;
+import com.rahulagarwal.promptforge.auth.service.EmailVerificationTokenService;
 import com.rahulagarwal.promptforge.auth.service.PasswordResetTokenService;
 import com.rahulagarwal.promptforge.auth.service.RefreshTokenService;
 import com.rahulagarwal.promptforge.common.enums.ErrorCode;
@@ -43,8 +44,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
     private final RefreshTokenService refreshTokenService;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordResetTokenService passwordResetTokenService;
+    private final EmailVerificationTokenService emailVerificationTokenService;
 
     @Override
     public RegisterResponse register(RegisterRequest request) {
@@ -57,21 +58,28 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(request.email().trim().toLowerCase());
         user.updatePassword(passwordEncoder.encode(request.password()));
         user.setRole(request.role());
-        user.setAccountStatus(AccountStatus.ACTIVE);
+        user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
         user.setAuthProvider(AuthProvider.LOCAL);
         user.setEmailVerified(false);
         user.setAccountNonLocked(true);
         user.setAccountNonExpired(true);
         user.setCredentialsNonExpired(true);
         AuthUser savedUser = authUserRepository.save(user);
+        EmailVerificationToken verificationToken = emailVerificationTokenService.create(savedUser);
         log.info("User created successfully with id={}", savedUser.getId());
+        log.debug("Email verification token : {}", verificationToken.getToken());
         return authMapper.toRegisterResponse(savedUser);
     }
 
     @Override
     public LoginResponse login(LoginRequest request) {
+        AuthUser user = authUserRepository.findByEmail(request.email()).orElseThrow(() ->
+                new ResourceNotFoundException("User not found.", ErrorCode.USER_NOT_FOUND)
+        );
+        if (!user.isEmailVerified()) {
+            throw new BadRequestException("Please verify your email before logging in.", ErrorCode.UNAUTHORIZED);
+        }
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
-        AuthUser user = authUserRepository.findByEmail(request.email()).orElseThrow();
         String access = jwtService.generateAccessToken(user);
         String refresh = jwtService.generateRefreshToken(user);
         refreshTokenService.create(user, refresh);
@@ -130,15 +138,25 @@ public class AuthServiceImpl implements AuthService {
         PasswordResetToken resetToken = passwordResetTokenService.verify(request.token());
         AuthUser user = resetToken.getAuthUser();
         if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
-            throw new BadRequestException(
-                    "New password cannot be the same as the current password.",
-                    ErrorCode.BAD_REQUEST
-            );
+            throw new BadRequestException("New password cannot be the same as the current password.", ErrorCode.BAD_REQUEST);
         }
         user.updatePassword(passwordEncoder.encode(request.newPassword()));
         authUserRepository.save(user);
         passwordResetTokenService.markAsUsed(resetToken);
         refreshTokenService.revokeAll(user);
         log.info("Password reset successfully for {}", user.getEmail());
+    }
+
+    @Override
+    public void verifyEmail(VerifyEmailRequest request) {
+        EmailVerificationToken verificationToken = emailVerificationTokenService.verify(request.token());
+        AuthUser user = verificationToken.getAuthUser();
+        if (user.isEmailVerified()) {
+            throw new BadRequestException("Email already verified.", ErrorCode.BAD_REQUEST);
+        }
+        user.verifyEmail();
+        authUserRepository.save(user);
+        emailVerificationTokenService.markVerified(verificationToken);
+        log.info("Email verified successfully for {}", user.getEmail());
     }
 }
