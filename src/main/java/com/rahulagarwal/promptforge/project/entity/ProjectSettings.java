@@ -41,6 +41,15 @@ public class ProjectSettings extends BaseEntity {
     @Column(nullable = false)
     private Integer maxTokens = 2048;
 
+    @Column(nullable = false)
+    private Boolean streamingEnabled = true;
+
+    @Column(nullable = false)
+    private Boolean ragEnabled = false;
+
+    @Column(nullable = false)
+    private Boolean memoryEnabled = true;
+
     @Column(length = 5000)
     private String systemPrompt;
 }

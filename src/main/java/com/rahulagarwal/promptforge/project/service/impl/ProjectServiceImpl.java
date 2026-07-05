@@ -7,6 +7,7 @@ import com.rahulagarwal.promptforge.common.response.PageResponse;
 import com.rahulagarwal.promptforge.project.dto.request.CreateProjectRequest;
 import com.rahulagarwal.promptforge.project.dto.request.ProjectSearchRequest;
 import com.rahulagarwal.promptforge.project.dto.request.UpdateProjectRequest;
+import com.rahulagarwal.promptforge.project.dto.response.ProjectDashboardResponse;
 import com.rahulagarwal.promptforge.project.dto.response.ProjectResponse;
 import com.rahulagarwal.promptforge.project.dto.response.ProjectSummaryResponse;
 import com.rahulagarwal.promptforge.project.entity.Project;
@@ -85,15 +86,7 @@ public class ProjectServiceImpl implements ProjectService {
         Sort sort = direction.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<Project> projects = projectRepository.findAll(ProjectSpecification.search(owner, request), pageable);
-        return new PageResponse<>(
-                projects.getContent().stream().map(mapper::toSummary).toList(),
-                projects.getNumber(),
-                projects.getSize(),
-                projects.getTotalElements(),
-                projects.getTotalPages(),
-                projects.isFirst(),
-                projects.isLast()
-        );
+        return new PageResponse<>(projects.getContent().stream().map(mapper::toSummary).toList(), projects.getNumber(), projects.getSize(), projects.getTotalElements(), projects.getTotalPages(), projects.isFirst(), projects.isLast());
     }
 
     @Override
@@ -123,5 +116,33 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectRepository.findByIdAndOwnerIdAndStatusNot(id, owner.getId(), ProjectStatus.DELETED).orElseThrow(() -> new ResourceNotFoundException("Project not found.", ErrorCode.PROJECT_NOT_FOUND));
         project.delete();
         log.info("Project '{}' deleted.", project.getName());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProjectDashboardResponse getDashboard(UUID projectId) {
+        UserProfile owner = userContextService.getCurrentUserProfile();
+        Project project = projectRepository.findByIdAndOwnerIdAndStatusNot(projectId, owner.getId(), ProjectStatus.DELETED).orElseThrow(() -> new ResourceNotFoundException("Project not found.", ErrorCode.PROJECT_NOT_FOUND));
+        ProjectSettings settings = projectSettingsRepository.findByProjectId(projectId).orElseThrow(() -> new ResourceNotFoundException("Project settings not found.", ErrorCode.RESOURCE_NOT_FOUND));
+        return new ProjectDashboardResponse(
+                project.getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getStatus(),
+                project.getVisibility(),
+                settings.getProvider(),
+                settings.getModel(),
+                settings.getTemperature(),
+                settings.getMaxTokens(),
+                settings.getStreamingEnabled(),
+                settings.getRagEnabled(),
+                settings.getMemoryEnabled(),
+                0L,
+                0L,
+                0L,
+                0L,
+                project.getCreatedAt(),
+                project.getUpdatedAt()
+        );
     }
 }

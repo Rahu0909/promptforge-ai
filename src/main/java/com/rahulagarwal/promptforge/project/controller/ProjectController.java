@@ -5,6 +5,7 @@ import com.rahulagarwal.promptforge.common.response.PageResponse;
 import com.rahulagarwal.promptforge.project.dto.request.CreateProjectRequest;
 import com.rahulagarwal.promptforge.project.dto.request.ProjectSearchRequest;
 import com.rahulagarwal.promptforge.project.dto.request.UpdateProjectRequest;
+import com.rahulagarwal.promptforge.project.dto.response.ProjectDashboardResponse;
 import com.rahulagarwal.promptforge.project.dto.response.ProjectResponse;
 import com.rahulagarwal.promptforge.project.dto.response.ProjectSummaryResponse;
 import com.rahulagarwal.promptforge.project.enums.ProjectStatus;
@@ -27,6 +28,7 @@ import java.util.UUID;
 @Validated
 public class ProjectController {
     private final ProjectService projectService;
+
     @PostMapping
     public ResponseEntity<ApiResponse<ProjectResponse>> createProject(@Valid @RequestBody CreateProjectRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(projectService.createProject(request), "Project created successfully."));
@@ -43,15 +45,7 @@ public class ProjectController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<ProjectSummaryResponse>>> searchProjects(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) ProjectStatus status,
-            @RequestParam(required = false) ProjectVisibility visibility,
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size,
-            @RequestParam(defaultValue = "updatedAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String direction
-    ) {
+    public ResponseEntity<ApiResponse<PageResponse<ProjectSummaryResponse>>> searchProjects(@RequestParam(required = false) String keyword, @RequestParam(required = false) ProjectStatus status, @RequestParam(required = false) ProjectVisibility visibility, @RequestParam(defaultValue = "0") @Min(0) int page, @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size, @RequestParam(defaultValue = "updatedAt") String sortBy, @RequestParam(defaultValue = "desc") String direction) {
         ProjectSearchRequest request = new ProjectSearchRequest(keyword, status, visibility);
         return ResponseEntity.ok(ApiResponse.success(projectService.searchProjects(request, page, size, sortBy, direction), "Projects fetched successfully."));
     }
@@ -66,5 +60,10 @@ public class ProjectController {
     public ResponseEntity<ApiResponse<Void>> deleteProject(@PathVariable UUID id) {
         projectService.deleteProject(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Project deleted successfully."));
+    }
+
+    @GetMapping("/{id}/dashboard")
+    public ResponseEntity<ApiResponse<ProjectDashboardResponse>> getDashboard(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(projectService.getDashboard(id), "Project dashboard fetched successfully."));
     }
 }

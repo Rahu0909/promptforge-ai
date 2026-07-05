@@ -4,6 +4,7 @@ import com.rahulagarwal.promptforge.common.response.PageResponse;
 import com.rahulagarwal.promptforge.project.dto.request.CreateProjectRequest;
 import com.rahulagarwal.promptforge.project.dto.request.ProjectSearchRequest;
 import com.rahulagarwal.promptforge.project.dto.request.UpdateProjectRequest;
+import com.rahulagarwal.promptforge.project.dto.response.ProjectDashboardResponse;
 import com.rahulagarwal.promptforge.project.dto.response.ProjectResponse;
 import com.rahulagarwal.promptforge.project.dto.response.ProjectSummaryResponse;
 
@@ -22,5 +23,7 @@ public interface ProjectService {
     void archiveProject(UUID id);
 
     void deleteProject(UUID id);
+
+    ProjectDashboardResponse getDashboard(UUID projectId);
 
 }
