@@ -21,6 +21,9 @@ import com.rahulagarwal.promptforge.common.exception.ResourceNotFoundException;
 import com.rahulagarwal.promptforge.security.jwt.JwtProperties;
 import com.rahulagarwal.promptforge.security.jwt.JwtService;
 import com.rahulagarwal.promptforge.security.model.CustomUserDetails;
+import com.rahulagarwal.promptforge.user.entity.UserProfile;
+import com.rahulagarwal.promptforge.user.enums.UserStatus;
+import com.rahulagarwal.promptforge.user.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,6 +33,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -46,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
     private final PasswordResetTokenService passwordResetTokenService;
     private final EmailVerificationTokenService emailVerificationTokenService;
+    private final UserProfileRepository userProfileRepository;
 
     @Override
     public RegisterResponse register(RegisterRequest request) {
@@ -73,11 +79,13 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        AuthUser user = authUserRepository.findByEmail(request.email()).orElseThrow(() ->
-                new ResourceNotFoundException("User not found.", ErrorCode.USER_NOT_FOUND)
-        );
+        AuthUser user = authUserRepository.findByEmail(request.email()).orElseThrow(() -> new ResourceNotFoundException("User not found.", ErrorCode.USER_NOT_FOUND));
         if (!user.isEmailVerified()) {
             throw new BadRequestException("Please verify your email before logging in.", ErrorCode.UNAUTHORIZED);
+        }
+        Optional<UserProfile> profile = userProfileRepository.findByAuthUserId(user.getId());
+        if (profile.isPresent() && profile.get().getStatus() == UserStatus.DELETED) {
+            throw new BadRequestException("Profile has been deleted.", ErrorCode.ACCESS_DENIED);
         }
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
         String access = jwtService.generateAccessToken(user);
