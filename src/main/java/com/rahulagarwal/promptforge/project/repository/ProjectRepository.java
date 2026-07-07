@@ -11,8 +11,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface ProjectRepository extends JpaRepository<Project, UUID>,
-        JpaSpecificationExecutor<Project> {
+public interface ProjectRepository extends JpaRepository<Project, UUID>, JpaSpecificationExecutor<Project> {
 
     Page<Project> findAllByOwnerAndStatusNot(UserProfile owner, ProjectStatus status, Pageable pageable);
 
@@ -20,4 +19,5 @@ public interface ProjectRepository extends JpaRepository<Project, UUID>,
 
     boolean existsByOwnerAndNameIgnoreCase(UserProfile owner, String name);
 
+    Optional<Project> findByIdAndStatusNot(UUID id, ProjectStatus status);
 }
