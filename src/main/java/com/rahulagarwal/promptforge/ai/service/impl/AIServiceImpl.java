@@ -44,4 +44,10 @@ public class AIServiceImpl implements AIService {
         String prompt = promptTemplateService.buildPrompt(PromptTemplates.INTERVIEW_QUESTION, Map.of("topic", request.prompt()));
         return provider.generateStructured(request, prompt, InterviewQuestionResponse.class);
     }
+
+    @Override
+    public String generate(String prompt, ChatRequest request) {
+        AIProvider provider = providerFactory.getProvider();
+        return provider.generate(request, prompt);
+    }
 }

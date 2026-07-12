@@ -6,9 +6,28 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "app.ai")
+@ConfigurationProperties(prefix = "promptforge.ai")
 public class AIProperties {
 
-    private String provider = "ollama";
+    /**
+     * ollama | openai | gemini
+     */
+    private String provider;
+
+    /**
+     * Default model configured for the selected provider.
+     */
+    private String model;
+
+    /**
+     * Default generation parameters.
+     */
+    private Double temperature;
+
+    private Double topP;
+
+    private Integer topK;
+
+    private Integer maxTokens;
 
 }

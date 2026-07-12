@@ -12,4 +12,6 @@ public interface AIService {
     Flux<String> stream(ChatRequest request);
 
     InterviewQuestionResponse generateInterviewQuestion(ChatRequest request);
+
+    String generate(String prompt, ChatRequest request);
 }
