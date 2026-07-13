@@ -50,4 +50,10 @@ public class AIServiceImpl implements AIService {
         AIProvider provider = providerFactory.getProvider();
         return provider.generate(request, prompt);
     }
+
+    @Override
+    public <T> T generateStructured(String prompt, ChatRequest request, Class<T> responseType) {
+        AIProvider provider = providerFactory.getProvider();
+        return provider.generateStructured(request, prompt, responseType);
+    }
 }

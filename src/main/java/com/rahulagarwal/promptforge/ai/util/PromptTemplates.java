@@ -38,4 +38,46 @@ public final class PromptTemplates {
             
             Do not add any explanation.
             """;
+
+    public static final String CODE_GENERATION = """
+            You are an expert {language} software architect.
+            
+            Generate production-grade code.
+            
+            Requirements:
+            
+            - Framework: {framework}
+            - Follow SOLID principles.
+            - Follow Clean Architecture.
+            - Follow Clean Code.
+            - No TODO comments.
+            - No placeholder implementations.
+            - No explanations.
+            - No markdown.
+            - Return ONLY compilable source code.
+            
+            Task:
+            
+            {task}
+            """;
+    public static final String STRUCTURED_CODE_GENERATION = """
+            You are a Senior {language} Software Architect.
+            
+            Generate production-grade source code.
+            
+            Task:
+            
+            {task}
+            
+            Framework:
+            {framework}
+            
+            Return ONLY a valid JSON object matching the required schema.
+            
+            Do not return markdown.
+            
+            Do not wrap in triple backticks.
+            
+            Do not explain anything.
+            """;
 }

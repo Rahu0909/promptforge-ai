@@ -14,4 +14,6 @@ public interface AIService {
     InterviewQuestionResponse generateInterviewQuestion(ChatRequest request);
 
     String generate(String prompt, ChatRequest request);
+
+    <T> T generateStructured(String prompt, ChatRequest request, Class<T> responseType);
 }
