@@ -41,12 +41,12 @@ public class OllamaProvider implements AIProvider {
                 .build();
 
         log.info("""
-                Provider      : {}
-                Temperature   : {}
-                TopP          : {}
-                TopK          : {}
-                MaxTokens     : {}
-                """,
+                        Provider      : {}
+                        Temperature   : {}
+                        TopP          : {}
+                        TopK          : {}
+                        MaxTokens     : {}
+                        """,
                 providerName(),
                 request.temperature(),
                 request.topP(),
@@ -55,6 +55,13 @@ public class OllamaProvider implements AIProvider {
 
         return client.prompt()
                 .options(options)
+                .system("""
+                        You are a JSON API.
+                        Return ONLY valid JSON.
+                        Never answer in markdown.
+                        Never explain anything.
+                        Never output any text outside the JSON object.
+                        """)
                 .user(prompt)
                 .call()
                 .content();
@@ -110,6 +117,13 @@ public class OllamaProvider implements AIProvider {
 
         return client.prompt()
                 .options(options)
+                .system("""
+                        You are a JSON API.
+                        Return ONLY valid JSON.
+                        Never output markdown.
+                        Never explain anything.
+                        Never output text outside the JSON object.
+                        """)
                 .user(prompt)
                 .call()
                 .entity(responseType);

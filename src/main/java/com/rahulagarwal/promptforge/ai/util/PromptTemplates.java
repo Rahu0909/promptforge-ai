@@ -60,24 +60,42 @@ public final class PromptTemplates {
             
             {task}
             """;
+
     public static final String STRUCTURED_CODE_GENERATION = """
-            You are a Senior {language} Software Architect.
+            You are an expert {language} software architect.
             
-            Generate production-grade source code.
-            
-            Task:
-            
-            {task}
+            Generate production-ready source code.
             
             Framework:
             {framework}
             
-            Return ONLY a valid JSON object matching the required schema.
+            Task:
+            {task}
             
-            Do not return markdown.
+            STRICT OUTPUT RULES
             
-            Do not wrap in triple backticks.
+            You are returning data to another computer program.
             
-            Do not explain anything.
+            Return ONLY one valid JSON object.
+            
+            The response must start with an opening curly brace.
+            
+            The response must end with a closing curly brace.
+            
+            Do not write explanations.
+            
+            Do not write markdown.
+            
+            Do not use triple backticks.
+            
+            Do not write any text before the JSON.
+            
+            Do not write any text after the JSON.
+            
+            Do not add extra fields.
+            
+            Do not omit required fields.
+            
+            The value of the code field must contain the complete source code.
             """;
 }
