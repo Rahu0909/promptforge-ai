@@ -41,4 +41,13 @@ public class Message extends BaseEntity {
     @Column(name = "generation_time_ms")
     private Long generationTimeMs;
 
+    @Column(name = "provider", length = 50)
+    private String provider;
+
+    @Column(name = "model", length = 100)
+    private String model;
+
+    @Column(name = "finish_reason", length = 50)
+    private String finishReason;
+
 }

@@ -4,10 +4,12 @@ import com.rahulagarwal.promptforge.ai.config.AIProperties;
 import com.rahulagarwal.promptforge.chat.dto.request.CreateConversationRequest;
 import com.rahulagarwal.promptforge.chat.dto.request.RenameConversationRequest;
 import com.rahulagarwal.promptforge.chat.dto.response.ConversationResponse;
+import com.rahulagarwal.promptforge.chat.dto.response.ConversationStatsResponse;
 import com.rahulagarwal.promptforge.chat.entity.Conversation;
 import com.rahulagarwal.promptforge.chat.enums.ConversationStatus;
 import com.rahulagarwal.promptforge.chat.mapper.ChatMapper;
 import com.rahulagarwal.promptforge.chat.repository.ConversationRepository;
+import com.rahulagarwal.promptforge.chat.repository.MessageRepository;
 import com.rahulagarwal.promptforge.chat.service.ConversationService;
 import com.rahulagarwal.promptforge.common.enums.ErrorCode;
 import com.rahulagarwal.promptforge.common.exception.ResourceNotFoundException;
@@ -33,6 +35,7 @@ public class ConversationServiceImpl implements ConversationService {
     private final AuthorizationService authorizationService;
     private final ChatMapper mapper;
     private final AIProperties aiProperties;
+    private final MessageRepository messageRepository;
 
     @Override
     public ConversationResponse create(CreateConversationRequest request) {
@@ -56,9 +59,15 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<ConversationResponse> getProjectConversations(UUID projectId, int page, int size) {
+    public PageResponse<ConversationResponse> getProjectConversations(UUID projectId, String search, int page, int size) {
         authorizationService.getOwnedProject(projectId);
-        Page<Conversation> conversations = repository.findByProjectIdAndStatus(projectId, ConversationStatus.ACTIVE, PageRequest.of(page, size, Sort.by("lastMessageAt").descending()));
+        PageRequest pageable = PageRequest.of(page, size, Sort.by("lastMessageAt").descending());
+        Page<Conversation> conversations;
+        if (search == null || search.isBlank()) {
+            conversations = repository.findByProjectIdAndStatus(projectId, ConversationStatus.ACTIVE, pageable);
+        } else {
+            conversations = repository.findByProjectIdAndStatusAndTitleContainingIgnoreCase(projectId, ConversationStatus.ACTIVE, search.trim(), pageable);
+        }
         return new PageResponse<>(conversations.getContent().stream().map(mapper::toConversationResponse).toList(), conversations.getNumber(), conversations.getSize(), conversations.getTotalElements(), conversations.getTotalPages(), conversations.isFirst(), conversations.isLast());
     }
 
@@ -76,5 +85,14 @@ public class ConversationServiceImpl implements ConversationService {
         authorizationService.getOwnedProject(conversation.getProject().getId());
         conversation.setStatus(ConversationStatus.ARCHIVED);
         repository.save(conversation);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ConversationStatsResponse getStats(UUID conversationId) {
+        Conversation conversation = repository.findByIdAndStatus(conversationId, ConversationStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Conversation not found.", ErrorCode.RESOURCE_NOT_FOUND));
+        authorizationService.getOwnedProject(conversation.getProject().getId());
+        long count = messageRepository.countByConversationId(conversationId);
+        return new ConversationStatsResponse(conversation.getId(), count, conversation.getLastMessageAt(), conversation.getProvider(), conversation.getModel());
     }
 }

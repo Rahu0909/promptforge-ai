@@ -1,10 +1,6 @@
 package com.rahulagarwal.promptforge.chat.service.impl;
 
-import com.rahulagarwal.promptforge.ai.config.AIProperties;
-import com.rahulagarwal.promptforge.ai.dto.request.ChatRequest;
-import com.rahulagarwal.promptforge.ai.factory.AIRequestFactory;
-import com.rahulagarwal.promptforge.ai.service.AIService;
-import com.rahulagarwal.promptforge.chat.builder.ConversationHistoryBuilder;
+import com.rahulagarwal.promptforge.ai.memory.service.ChatMemoryService;
 import com.rahulagarwal.promptforge.chat.dto.request.SendMessageRequest;
 import com.rahulagarwal.promptforge.chat.dto.response.MessageResponse;
 import com.rahulagarwal.promptforge.chat.entity.Conversation;
@@ -35,9 +31,7 @@ public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final AuthorizationService authorizationService;
     private final ChatMapper mapper;
-    private final AIService aiService;
-    private final AIRequestFactory aiRequestFactory;
-    private final ConversationHistoryBuilder historyBuilder;
+    private final ChatMemoryService chatMemoryService;
 
     @Override
     public MessageResponse sendMessage(UUID conversationId, SendMessageRequest request) {
@@ -48,17 +42,17 @@ public class MessageServiceImpl implements MessageService {
         userMessage.setRole(MessageRole.USER);
         userMessage.setContent(request.message().trim());
         messageRepository.save(userMessage);
-        List<Message> history = messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId);
-        String finalPrompt = historyBuilder.build(history, request.message().trim());
-        ChatRequest chatRequest = aiRequestFactory.create(finalPrompt);
         long start = System.currentTimeMillis();
-        String aiResponse = aiService.generate(finalPrompt, chatRequest);
+        String aiResponse = chatMemoryService.chat(conversation.getId().toString(), request.message().trim());
         long generationTime = System.currentTimeMillis() - start;
         Message assistant = new Message();
         assistant.setConversation(conversation);
         assistant.setRole(MessageRole.ASSISTANT);
         assistant.setContent(aiResponse);
         assistant.setGenerationTimeMs(generationTime);
+        assistant.setProvider("ollama");
+        assistant.setModel("llama3.2");
+        assistant.setFinishReason("STOP");
         messageRepository.save(assistant);
         OffsetDateTime now = OffsetDateTime.now();
         conversation.setLastMessageAt(now);

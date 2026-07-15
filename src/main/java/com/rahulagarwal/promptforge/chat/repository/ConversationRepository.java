@@ -18,4 +18,5 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
     @EntityGraph(attributePaths = "project")
     Page<Conversation> findByProjectIdAndStatus(UUID projectId, ConversationStatus status, Pageable pageable);
 
+    Page<Conversation> findByProjectIdAndStatusAndTitleContainingIgnoreCase(UUID projectId, ConversationStatus status, String keyword, Pageable pageable);
 }
