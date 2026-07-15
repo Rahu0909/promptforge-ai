@@ -16,6 +16,7 @@ public class ChatMemoryServiceImpl implements ChatMemoryService {
     @Override
     public String chat(String conversationId,
                        String message) {
+        System.out.println("ConversationId = " + conversationId);
         return chatClient
                 .prompt()
                 .advisors(advisor ->

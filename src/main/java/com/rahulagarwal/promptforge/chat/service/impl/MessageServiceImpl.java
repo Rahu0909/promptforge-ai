@@ -54,8 +54,7 @@ public class MessageServiceImpl implements MessageService {
         assistant.setModel("llama3.2");
         assistant.setFinishReason("STOP");
         messageRepository.save(assistant);
-        OffsetDateTime now = OffsetDateTime.now();
-        conversation.setLastMessageAt(now);
+        conversationRepository.updateLastMessageAt(conversationId, OffsetDateTime.now());
         conversationRepository.save(conversation);
         return mapper.toMessageResponse(assistant);
     }
