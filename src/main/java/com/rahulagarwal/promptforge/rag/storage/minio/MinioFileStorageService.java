@@ -4,6 +4,7 @@ import com.rahulagarwal.promptforge.rag.exception.FileStorageException;
 import com.rahulagarwal.promptforge.rag.storage.FileStorageService;
 import com.rahulagarwal.promptforge.rag.storage.config.StorageProperties;
 import com.rahulagarwal.promptforge.rag.storage.model.StoredFile;
+import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -47,6 +49,17 @@ public class MinioFileStorageService implements FileStorageService {
         } catch (Exception ex) {
             log.error("Unable to delete '{}'", storagePath, ex);
             throw new FileStorageException("Failed to delete object from MinIO.");
+        }
+    }
+
+    @Override
+    public InputStream load(String storagePath) {
+        try {
+            log.info("Loading '{}' from MinIO", storagePath);
+            return minioClient.getObject(GetObjectArgs.builder().bucket(storageProperties.getBucket()).object(storagePath).build());
+        } catch (Exception ex) {
+            log.error("Unable to load '{}' from MinIO", storagePath, ex);
+            throw new FileStorageException("Failed to load object from MinIO.");
         }
     }
 }

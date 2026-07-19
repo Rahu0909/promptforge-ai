@@ -1,11 +1,12 @@
 package com.rahulagarwal.promptforge.rag.parser;
 
-import org.springframework.web.multipart.MultipartFile;
+import com.rahulagarwal.promptforge.rag.enums.DocumentType;
+
+import java.io.InputStream;
 
 public interface DocumentParser {
 
-    boolean supports(String filename);
+    DocumentType supportedType();
 
-    String parse(MultipartFile file);
-
+    ParsedDocument parse(InputStream inputStream);
 }

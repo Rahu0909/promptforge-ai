@@ -51,4 +51,7 @@ public class KnowledgeDocument extends BaseEntity {
 
     @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
+
+    @Column(name = "chunk_count")
+    private Integer chunkCount;
 }

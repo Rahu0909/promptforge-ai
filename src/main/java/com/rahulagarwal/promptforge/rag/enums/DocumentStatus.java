@@ -8,6 +8,8 @@ public enum DocumentStatus {
 
     COMPLETED,
 
-    FAILED
+    FAILED,
+
+    READY
 
 }

@@ -1,0 +1,8 @@
+ALTER TABLE document_chunks
+    ADD COLUMN created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM';
+
+ALTER TABLE document_chunks
+    ADD COLUMN updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM';
+
+ALTER TABLE document_chunks
+    ADD COLUMN version BIGINT NOT NULL DEFAULT 0;

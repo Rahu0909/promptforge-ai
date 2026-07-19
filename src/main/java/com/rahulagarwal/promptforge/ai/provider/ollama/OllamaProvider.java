@@ -21,112 +21,57 @@ public class OllamaProvider implements AIProvider {
     private final OllamaChatModel chatModel;
     private final SimpleLoggerAdvisor simpleLoggerAdvisor;
 
-    @Retryable(
-            retryFor = Exception.class,
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000)
-    )
+    @Retryable(retryFor = Exception.class, maxAttempts = 3, backoff = @Backoff(delay = 1000))
     @Override
     public String generate(ChatRequest request, String prompt) {
 
-        ChatClient client = ChatClient.builder(chatModel)
-                .defaultAdvisors(simpleLoggerAdvisor)
-                .build();
+        ChatClient client = ChatClient.builder(chatModel).defaultAdvisors(simpleLoggerAdvisor).build();
 
-        OllamaChatOptions options = OllamaChatOptions.builder()
-                .temperature(request.temperature())
-                .topP(request.topP())
-                .topK(request.topK())
-                .numPredict(request.maxTokens())
-                .build();
+        OllamaChatOptions options = OllamaChatOptions.builder().temperature(request.temperature()).topP(request.topP()).topK(request.topK()).numPredict(request.maxTokens()).build();
 
         log.info("""
-                        Provider      : {}
-                        Temperature   : {}
-                        TopP          : {}
-                        TopK          : {}
-                        MaxTokens     : {}
-                        """,
-                providerName(),
-                request.temperature(),
-                request.topP(),
-                request.topK(),
-                request.maxTokens());
+                Provider      : {}
+                Temperature   : {}
+                TopP          : {}
+                TopK          : {}
+                MaxTokens     : {}
+                """, providerName(), request.temperature(), request.topP(), request.topK(), request.maxTokens());
 
-        return client.prompt()
-                .options(options)
-                .system("""
-                        You are a JSON API.
-                        Return ONLY valid JSON.
-                        Never answer in markdown.
-                        Never explain anything.
-                        Never output any text outside the JSON object.
-                        """)
-                .user(prompt)
-                .call()
-                .content();
+        return client.prompt().options(options).system("""
+                You are a JSON API.
+                Return ONLY valid JSON.
+                Never answer in markdown.
+                Never explain anything.
+                Never output any text outside the JSON object.
+                """).user(prompt).call().content();
     }
 
-    @Retryable(
-            retryFor = Exception.class,
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000)
-    )
+    @Retryable(retryFor = Exception.class, maxAttempts = 3, backoff = @Backoff(delay = 1000))
     @Override
     public Flux<String> stream(ChatRequest request, String prompt) {
 
-        ChatClient client = ChatClient.builder(chatModel)
-                .defaultAdvisors(simpleLoggerAdvisor)
-                .build();
+        ChatClient client = ChatClient.builder(chatModel).defaultAdvisors(simpleLoggerAdvisor).build();
 
-        OllamaChatOptions options = OllamaChatOptions.builder()
-                .temperature(request.temperature())
-                .topP(request.topP())
-                .topK(request.topK())
-                .numPredict(request.maxTokens())
-                .build();
+        OllamaChatOptions options = OllamaChatOptions.builder().temperature(request.temperature()).topP(request.topP()).topK(request.topK()).numPredict(request.maxTokens()).build();
 
-        return client.prompt()
-                .options(options)
-                .user(prompt)
-                .stream()
-                .content();
+        return client.prompt().options(options).user(prompt).stream().content();
     }
 
-    @Retryable(
-            retryFor = Exception.class,
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000)
-    )
+    @Retryable(retryFor = Exception.class, maxAttempts = 3, backoff = @Backoff(delay = 1000))
     @Override
-    public <T> T generateStructured(
-            ChatRequest request,
-            String prompt,
-            Class<T> responseType) {
+    public <T> T generateStructured(ChatRequest request, String prompt, Class<T> responseType) {
 
-        ChatClient client = ChatClient.builder(chatModel)
-                .defaultAdvisors(simpleLoggerAdvisor)
-                .build();
+        ChatClient client = ChatClient.builder(chatModel).defaultAdvisors(simpleLoggerAdvisor).build();
 
-        OllamaChatOptions options = OllamaChatOptions.builder()
-                .temperature(request.temperature())
-                .topP(request.topP())
-                .topK(request.topK())
-                .numPredict(request.maxTokens())
-                .build();
+        OllamaChatOptions options = OllamaChatOptions.builder().temperature(request.temperature()).topP(request.topP()).topK(request.topK()).numPredict(request.maxTokens()).build();
 
-        return client.prompt()
-                .options(options)
-                .system("""
-                        You are a JSON API.
-                        Return ONLY valid JSON.
-                        Never output markdown.
-                        Never explain anything.
-                        Never output text outside the JSON object.
-                        """)
-                .user(prompt)
-                .call()
-                .entity(responseType);
+        return client.prompt().options(options).system("""
+                You are a JSON API.
+                Return ONLY valid JSON.
+                Never output markdown.
+                Never explain anything.
+                Never output text outside the JSON object.
+                """).user(prompt).call().entity(responseType);
     }
 
     @Override
@@ -134,4 +79,20 @@ public class OllamaProvider implements AIProvider {
         return "ollama";
     }
 
+    @Override
+    public String generateRag(ChatRequest request, String prompt) {
+        ChatClient client = ChatClient.builder(chatModel).defaultAdvisors(simpleLoggerAdvisor).build();
+        OllamaChatOptions options = OllamaChatOptions.builder().temperature(request.temperature()).topP(request.topP()).topK(request.topK()).numPredict(request.maxTokens()).build();
+        return client.prompt().options(options).system("""
+                You are an AI assistant answering questions using only
+                the supplied document context.
+                
+                If the answer is not present in the supplied context,
+                respond exactly:
+                
+                I could not find this information in the uploaded documents.
+               
+                Never fabricate information.
+                """).user(prompt).call().content();
+    }
 }

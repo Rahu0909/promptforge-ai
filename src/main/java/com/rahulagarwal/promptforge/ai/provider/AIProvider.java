@@ -7,9 +7,13 @@ public interface AIProvider {
 
     String generate(ChatRequest request, String prompt);
 
+    String generateRag(ChatRequest request, String prompt);
+
     Flux<String> stream(ChatRequest request, String prompt);
 
-    <T> T generateStructured(ChatRequest request, String prompt, Class<T> responseType);
+    <T> T generateStructured(ChatRequest request,
+                             String prompt,
+                             Class<T> responseType);
 
     String providerName();
 

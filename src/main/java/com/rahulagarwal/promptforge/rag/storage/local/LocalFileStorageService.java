@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -52,7 +53,18 @@ public class LocalFileStorageService implements FileStorageService {
         } catch (IOException ex) {
             log.error("Unable to delete '{}'", storagePath, ex);
             throw new FileStorageException("Failed to delete stored file.");
+        }
+    }
 
+    @Override
+    public InputStream load(String storagePath) {
+        try {
+            Path filePath = Path.of(storagePath);
+            log.info("Loading file '{}'", filePath);
+            return Files.newInputStream(filePath);
+        } catch (IOException ex) {
+            log.error("Unable to load '{}'", storagePath, ex);
+            throw new FileStorageException("Failed to load stored file.");
         }
     }
 }

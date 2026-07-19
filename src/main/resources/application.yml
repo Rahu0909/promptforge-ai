@@ -45,3 +45,7 @@ rag:
     access-key: minioadmin
     secret-key: minioadmin
     bucket: promptforge-documents
+
+  chunking:
+    chunk-size: 1000
+    overlap: 200
