@@ -1,0 +1,12 @@
+package com.rahulagarwal.promptforge.rag.storage;
+
+import com.rahulagarwal.promptforge.rag.storage.model.StoredFile;
+import org.springframework.web.multipart.MultipartFile;
+
+public interface FileStorageService {
+
+    StoredFile store(MultipartFile file);
+
+    void delete(String storagePath);
+
+}

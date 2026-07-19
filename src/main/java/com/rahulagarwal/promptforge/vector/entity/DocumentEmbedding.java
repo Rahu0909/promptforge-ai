@@ -3,6 +3,7 @@ package com.rahulagarwal.promptforge.vector.entity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.rahulagarwal.promptforge.common.entity.BaseEntity;
 import com.rahulagarwal.promptforge.project.entity.Project;
+import com.rahulagarwal.promptforge.rag.entity.KnowledgeDocument;
 import com.rahulagarwal.promptforge.vector.enums.SourceType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,10 +20,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DocumentEmbedding extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "project_id", nullable = false)
@@ -44,4 +41,8 @@ public class DocumentEmbedding extends BaseEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private JsonNode metadata;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "knowledge_document_id")
+    private KnowledgeDocument knowledgeDocument;
 }
