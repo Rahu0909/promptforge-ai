@@ -37,4 +37,24 @@ public class DocumentRetrievalServiceImpl implements DocumentRetrievalService {
                         .build())
                 .toList();
     }
+
+    @Override
+    public List<RetrievedChunk> retrieve(UUID projectId, String question, Double minimumSimilarity, int topK) {
+        log.info("Generating embedding for semantic search...");
+        float[] embedding = embeddingGenerationService.generateEmbedding(question);
+        String vector = VectorFormatter.format(embedding);
+        List<ChunkSearchResult> results = chunkRepository.searchSimilarChunks(projectId, vector, minimumSimilarity, topK);
+        log.info("Retrieved {} semantic chunks.", results.size());
+        return results.stream().map(this::mapChunk).toList();
+    }
+
+    private RetrievedChunk mapChunk(ChunkSearchResult result) {
+        return RetrievedChunk.builder()
+                .documentId(result.getDocumentId())
+                .documentName(result.getDocumentName())
+                .chunkIndex(result.getChunkIndex())
+                .content(result.getContent())
+                .similarity(result.getSimilarity())
+                .build();
+    }
 }

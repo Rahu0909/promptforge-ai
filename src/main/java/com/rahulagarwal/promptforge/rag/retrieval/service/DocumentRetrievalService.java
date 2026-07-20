@@ -9,4 +9,5 @@ public interface DocumentRetrievalService {
 
     List<RetrievedChunk> retrieve(UUID projectId, String question, int topK);
 
+    List<RetrievedChunk> retrieve(UUID projectId, String question, Double minimumSimilarity, int topK);
 }
