@@ -1,6 +1,7 @@
 package com.rahulagarwal.promptforge.ai.config;
 
 import com.rahulagarwal.promptforge.ai.tools.calculator.tool.CalculatorTool;
+import com.rahulagarwal.promptforge.ai.tools.weather.tool.WeatherTool;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -18,18 +19,17 @@ public class ChatClientConfiguration {
 
     @Bean
     @Primary
-    public ChatClient ollamaChatClient(OllamaChatModel chatModel, SimpleLoggerAdvisor loggerAdvisor, MessageChatMemoryAdvisor memoryAdvisor, CalculatorTool calculatorTool) {
-        return ChatClient.builder(chatModel).defaultAdvisors(loggerAdvisor, memoryAdvisor).defaultTools(calculatorTool).build();
+    public ChatClient ollamaChatClient(OllamaChatModel chatModel, SimpleLoggerAdvisor loggerAdvisor, MessageChatMemoryAdvisor memoryAdvisor, CalculatorTool calculatorTool, WeatherTool weatherTool) {
+        return ChatClient.builder(chatModel).defaultAdvisors(loggerAdvisor, memoryAdvisor).defaultTools(calculatorTool, weatherTool).build();
     }
 
     @Bean
-    public ChatClient geminiChatClient(GoogleGenAiChatModel chatModel, SimpleLoggerAdvisor loggerAdvisor, MessageChatMemoryAdvisor memoryAdvisor, CalculatorTool calculatorTool) {
-        return ChatClient.builder(chatModel).defaultAdvisors(loggerAdvisor, memoryAdvisor).defaultTools(calculatorTool).build();
+    public ChatClient geminiChatClient(GoogleGenAiChatModel chatModel, SimpleLoggerAdvisor loggerAdvisor, MessageChatMemoryAdvisor memoryAdvisor, CalculatorTool calculatorTool, WeatherTool weatherTool) {
+        return ChatClient.builder(chatModel).defaultAdvisors(loggerAdvisor, memoryAdvisor).defaultTools(calculatorTool, weatherTool).build();
     }
 
     @Bean
-    public ChatClient openAiChatClient(OpenAiChatModel chatModel, SimpleLoggerAdvisor loggerAdvisor, MessageChatMemoryAdvisor memoryAdvisor, CalculatorTool calculatorTool) {
-        return ChatClient.builder(chatModel).defaultAdvisors(loggerAdvisor, memoryAdvisor).defaultTools(calculatorTool).build();
+    public ChatClient openAiChatClient(OpenAiChatModel chatModel, SimpleLoggerAdvisor loggerAdvisor, MessageChatMemoryAdvisor memoryAdvisor, CalculatorTool calculatorTool, WeatherTool weatherTool) {
+        return ChatClient.builder(chatModel).defaultAdvisors(loggerAdvisor, memoryAdvisor).defaultTools(calculatorTool, weatherTool).build();
     }
-
 }

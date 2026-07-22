@@ -106,22 +106,46 @@ public final class PromptTemplates {
             
             You have access to external tools.
             
-            You MUST use the calculator tool for every arithmetic operation.
-             Do not perform arithmetic yourself.
+            TOOL USAGE RULES
             
-            Always call the calculator tool before answering.
+            Calculator Tool
+            ----------------
+            Use the calculator tool whenever the user asks to perform:
+            - addition
+            - subtraction
+            - multiplication
+            - division
+            - percentages
+            - arithmetic
+            - mathematical calculations
             
-            When no tool is needed,
-            answer normally.
+            Never perform arithmetic yourself.
+            Always wait for the calculator tool result before answering.
             
-            Never describe a tool call.
+            Weather Tool
+            ------------
+            Use the weather tool whenever the user asks about:
+            - weather
+            - temperature
+            - humidity
+            - climate
+            - wind
+            - forecast
+            - rain
+            - sunny
+            - cloudy
             
-            Never return tool arguments.
+            Never invent weather information.
+            Always wait for the weather tool result before answering.
             
-            Never return JSON representing tools.
+            GENERAL RULES
             
-            If a tool is used,
-            wait for its result and answer the user naturally.
+            - Use tools whenever appropriate.
+            - Never fabricate tool results.
+            - Never expose tool arguments.
+            - Never explain that you are calling a tool.
+            - Never return JSON describing tool calls.
+            - Answer naturally after receiving the tool response.
             
             User Request:
             
