@@ -24,17 +24,21 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public ChatResponse chat(ChatRequest request) {
+        log.info("============== AI CHAT REQUEST ==============");
+        log.info("User Prompt : {}", request.prompt());
         AIProvider provider = providerFactory.getProvider();
-        String finalPrompt = promptTemplateService.buildPrompt(PromptTemplates.EXPLAIN_TOPIC, Map.of("topic", request.prompt(), "lines", request.lines()));
+        log.info("Selected Provider : {}", provider.providerName());
+        String finalPrompt = promptTemplateService.buildPrompt(PromptTemplates.AGENT_CHAT, Map.of("prompt", request.prompt()));
         log.info("Final Prompt Sent To LLM:\n{}", finalPrompt);
         String response = provider.generate(request, finalPrompt);
+        log.info("Final AI Response = {}", response);
         return new ChatResponse(response);
     }
 
     @Override
     public Flux<String> stream(ChatRequest request) {
         AIProvider provider = providerFactory.getProvider();
-        String prompt = promptTemplateService.buildPrompt(PromptTemplates.EXPLAIN_TOPIC, Map.of("topic", request.prompt(), "lines", request.lines()));
+        String prompt = promptTemplateService.buildPrompt(PromptTemplates.AGENT_CHAT, Map.of("prompt", request.prompt()));
         return provider.stream(request, prompt);
     }
 

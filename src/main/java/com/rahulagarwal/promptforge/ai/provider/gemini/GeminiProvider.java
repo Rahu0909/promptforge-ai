@@ -13,15 +13,16 @@ import reactor.core.publisher.Flux;
 public class GeminiProvider implements AIProvider {
 
     private final GoogleGenAiChatModel chatModel;
+    private final ChatClient geminiChatClient;
 
     @Override
     public String generate(ChatRequest request, String prompt) {
-        return ChatClient.create(chatModel).prompt().user(prompt).call().content();
+        return geminiChatClient.prompt().user(prompt).call().content();
     }
 
     @Override
     public String generateRag(ChatRequest request, String prompt) {
-        return ChatClient.create(chatModel).prompt().system("""
+        return geminiChatClient.prompt().system("""
                 You are an AI assistant answering questions using ONLY
                 the supplied document context.
                 
@@ -35,12 +36,12 @@ public class GeminiProvider implements AIProvider {
 
     @Override
     public Flux<String> stream(ChatRequest request, String prompt) {
-        return ChatClient.create(chatModel).prompt().user(prompt).stream().content();
+        return geminiChatClient.prompt().user(prompt).stream().content();
     }
 
     @Override
     public <T> T generateStructured(ChatRequest request, String prompt, Class<T> responseType) {
-        return ChatClient.create(chatModel).prompt().user(prompt).call().entity(responseType);
+        return geminiChatClient.prompt().user(prompt).call().entity(responseType);
     }
 
     @Override

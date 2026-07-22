@@ -4,6 +4,7 @@ import com.rahulagarwal.promptforge.ai.memory.service.ChatMemoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -11,12 +12,11 @@ import reactor.core.publisher.Flux;
 @RequiredArgsConstructor
 public class ChatMemoryServiceImpl implements ChatMemoryService {
 
+    @Qualifier("ollamaChatClient")
     private final ChatClient chatClient;
 
     @Override
-    public String chat(String conversationId,
-                       String message) {
-        System.out.println("ConversationId = " + conversationId);
+    public String chat(String conversationId, String message) {
         return chatClient
                 .prompt()
                 .advisors(advisor ->

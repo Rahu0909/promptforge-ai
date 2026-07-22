@@ -1,10 +1,6 @@
 package com.rahulagarwal.promptforge.ai.dto.request;
 
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.*;
 import lombok.Builder;
 
 @Builder
@@ -12,6 +8,9 @@ public record ChatRequest(
 
         @NotBlank
         String prompt,
+
+        @NotBlank(message = "Conversation ID is required.")
+        String conversationId,
 
         @Min(1)
         @Max(20)
